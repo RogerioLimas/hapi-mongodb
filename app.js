@@ -2,9 +2,15 @@ const Hapi = require('hapi');
 const Joi = require('joi');
 const mongoose = require('mongoose');
 
+const { env } = process;
+
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
+
 const server = new Hapi.Server({
-    port: 3000,
-    host: 'localhost',
+    port: env.SERVER_PORT,
+    host: env.SERVER_HOST,
 });
 
 mongoose.connect('mongodb://localhost/thepolyglotdeveloper', {
@@ -25,9 +31,10 @@ server.route({
                 firstName: Joi.string().required(),
                 lastName: Joi.string().required(),
             },
-            failAction: (request, h, error) => (error.isJoi
+            failAction: (request, h, error) =>
+                error.isJoi
                     ? h.response(error.details[0]).takeover()
-                    : h.response(error).takeover()),
+                    : h.response(error).takeover(),
         },
     },
     handler: async (request, h) => {
@@ -77,9 +84,10 @@ server.route({
                 firstName: Joi.string().optional(),
                 lastName: Joi.string().optional(),
             },
-            failAction: (request, h, error) => (error.isJoi
-                ? h.response(error.details[0]).takeover()
-                : h.response(error).takeover()),
+            failAction: (request, h, error) =>
+                error.isJoi
+                    ? h.response(error.details[0]).takeover()
+                    : h.response(error).takeover(),
         },
     },
     handler: async (request, h) => {
@@ -87,7 +95,7 @@ server.route({
             const retorno = await PersonModel.findByIdAndUpdate(
                 request.params.id,
                 request.payload,
-                { new: true },
+                { new: true }
             ).exec();
             return h.response(retorno);
         } catch (error) {
@@ -102,7 +110,9 @@ server.route({
     path: '/person/{id}',
     handler: async (request, h) => {
         try {
-            const deletedPerson = await PersonModel.findByIdAndDelete(request.params.id).exec();
+            const deletedPerson = await PersonModel.findByIdAndDelete(
+                request.params.id
+            ).exec();
             return h.response(deletedPerson, 200);
         } catch (error) {
             return h.response(error, 500);
@@ -110,4 +120,8 @@ server.route({
     },
 });
 
-server.start();
+server
+    .start()
+    .then(() => console.log(
+            `Server listening on http://${env.SERVER_HOST}:${env.SERVER_PORT}`,
+        ));
