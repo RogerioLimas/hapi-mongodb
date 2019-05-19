@@ -48,7 +48,7 @@ server.route({
     handler: async (request, h) => {
         try {
             const people = await PersonModel.find().exec();
-            return h.response(people);
+            return h.response(people, 200);
         } catch (error) {
             console.log(`Error: ${error}`);
             return h.response(error, 500);
