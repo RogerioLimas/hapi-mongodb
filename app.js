@@ -25,9 +25,10 @@ server.route({
                 firstName: Joi.string().required(),
                 lastName: Joi.string().required(),
             },
-            failAction: (request, h, error) => (error.isJoi
+            failAction: (request, h, error) =>
+                error.isJoi
                     ? h.response(error.details[0]).takeover()
-                    : h.response(error).takeover()),
+                    : h.response(error).takeover(),
         },
     },
     handler: async (request, h) => {
@@ -41,6 +42,18 @@ server.route({
     },
 });
 
-server.start((err) => {
-    console.log('Ligado!', err);
+server.route({
+    method: 'GET',
+    path: '/people',
+    handler: async (request, h) => {
+        try {
+            const people = await PersonModel.find().exec();
+            return h.response(people);
+        } catch (error) {
+            console.log(`Error: ${error}`);
+            return h.response(error, 500);
+        }
+    },
 });
+
+server.start();
